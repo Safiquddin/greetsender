@@ -18,7 +18,7 @@ function autoReply() {
       var message = messages[j];
       var messageId = message.getId(); // Get the email ID
       // Check if the message has already been replied to thread
-      if (message.isInRepliedState()) {
+      if (message.isInChats()) {
         continue;
       }
       var senderEmail = message.getFrom();
