@@ -7,7 +7,9 @@
 // }  message.getFrom();
 function autoReply() {
   var sentEmails = [];
-  var threads = GmailApp.getInboxThreads(0, 100);
+  var successFlag = false;
+  // var threads = GmailApp.getInboxThreads(0, 100);
+  var threads = GmailApp.search('is:unread');
   var allowedDomains = ["gmail.com", "outlook.com", "siemens.com", "amdocs.com", "tcs.com", "iserveu.in", "capgemini.com", "myworkday.com"];
   var allowedSenders = ["mdkutubuddin33@gmail.com", "khanjordan440@gmail.com"];
   var hoursAgo = new Date();
@@ -35,14 +37,20 @@ function autoReply() {
             replyMessage += "In the meantime, you can reach out to me at +91 9776109078 if you have any urgent inquiries or questions.\n\n";
             replyMessage += "Sincerely,\nSafiquddin Khan";
             message.reply(replyMessage);
+            message.markRead();
             sentEmails.push(senderEmail);
+            successFlag = true;
           }
         }
       }
     }
   }
   var sentEmailsList = sentEmails.join('\n');
-  Logger.log("Reply Email sent successfully to:\n" + sentEmailsList);
+  if (successFlag) {
+    Logger.log("Reply Email sent successfully to:\n" + sentEmailsList);
+  } else {
+    Logger.log('No Unread Emails Found' );
+  }
 }
 
 function getSenderName(email) {
