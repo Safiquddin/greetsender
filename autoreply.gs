@@ -13,7 +13,7 @@ function autoReply() {
   var allowedDomains = ["gmail.com", "outlook.com", "siemens.com", "amdocs.com", "tcs.com", "iserveu.in", "capgemini.com", "myworkday.com"];
   var allowedSenders = ["mdkutubuddin33@gmail.com", "khanjordan440@gmail.com"];
   var hoursAgo = new Date();
-  hoursAgo.setDate(hoursAgo.getDate() - 1);
+  hoursAgo.setHours(hoursAgo.getHours() - 6);
 
   for (var i = 0; i < threads.length; i++) {
     var thread = threads[i];
@@ -30,7 +30,7 @@ function autoReply() {
         var senderDomain = senderEmail.substring(senderEmail.lastIndexOf("@") + 1);
 
         if (!sentEmails.includes(senderEmail)) {
-          if (allowedDomains.indexOf(senderDomain) !== -1 && allowedSenders.includes(senderEmail)) {
+          if (allowedDomains.includes(senderDomain) || allowedSenders.includes(senderEmail)) {
             var senderName = getSenderName(senderEmail);
             var replyMessage = "Hi " + senderName + ",\n\n";
             replyMessage += "Thank you for your email. I have received it and will respond shortly.\n\n";
@@ -49,20 +49,9 @@ function autoReply() {
   if (successFlag) {
     Logger.log("Reply Email sent successfully to:\n" + sentEmailsList);
   } else {
-    Logger.log('No Unread Emails Found' );
+    Logger.log('No Unread Emails Found');
   }
 }
-
-function getSenderName(email) {
-  var name = email.split('@')[0];
-  name = name.split('.').join(' ');
-  name = name.replace(/[0-9]+/g, '');
-  name = name.replace(/[^a-zA-Z ]/g, '');
-  name = name.trim();
-  name = name.charAt(0).toUpperCase() + name.slice(1);
-  return name;
-}
-
 
 function getSenderName(email) {
   var name = email.split('@')[0]; // Get the part before the @ symbol
