@@ -95,95 +95,106 @@
     <a href="https://www.linkedin.com/in/safiqkhan" target="_blank" aria-label="LinkedIn" class="social-badge">
       <i class="fab fa-linkedin"></i> LinkedIn
     </a>
-    <h3>Click button for today's greet</h3>
-
+    <!-- <script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script>
+    <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="dark" data-type="VERTICAL" data-vanity="safiqkhan" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://in.linkedin.com/in/safiqkhan?trk=profile-badge">Safiquddin Khan</a></div> -->
+    <h3 class="txt-ne">
+      <div id="editable-text" contenteditable="true">Click Execute button for today's greet ⬇️</div>
+    </h3>
     <!-- Checkbox to determine if you want to get the greet body -->
     <div>
       <input type="checkbox" id="getBody" aria-label="Get Greet Body only">
       <label for="getBody">Get GreetBody only</label>
+      <textarea id="inputBody" placeholder="Enter your Message" aria-label="Email Body"></textarea>
     </div>
-    
     <!-- Input field for recipient's email -->
     <input type="email" id="inputRecipient" placeholder="Recipient's Email" aria-label="Recipient's Email">
     
     <!-- Button to send the email -->
     <button id="sendEmailButton" aria-label="Execute">Execute</button>
-
+    <a id="PleaseWait" style="display: none;">Please Wait until Popup</a>
     <!-- Add a link element with an initial empty href -->
-    <a id="ExecutionsLink" href="https://script.google.com/home/projects/161G-77Z9OPj-Zg2lwcFmXQI3oOsmYlP6Iw4oPe5QdXJEioul3ITUzvtD/executions" style="display: none;">Executions Status</a>
-
+    <a id="ExecutionsLink" href="https://script.google.com/home/projects/1R8bgqF-G_fZXyER0sokYXSi80AaD_27RhOOzswUNnpT1Q8f94uxGngge/executions" style="display: none;">Executions Status</a>
+    <a id="successMessage" style="display: none;">Execution Suceess</a>
     <!-- Add a paragraph element to display the log output -->
     <p>Log Output:</p>
     <pre id="logOutput"></pre>
-
     <!-- Add a paragraph element to display errors -->
     <p class="error" id="errorMessage"></p>
   </div>
-
 <script>
   // JavaScript code for handling user interactions
   document.getElementById("sendEmailButton").addEventListener("click", function() {
-    // Get the recipient's email from the input field
     var inputRecipient = document.getElementById("inputRecipient").value;
-    // Check if a valid email is provided
     var getBody = document.getElementById("getBody").checked;
-
-    // Clear any previous errors
-    document.getElementById("errorMessage").textContent = '';
-
-    // Call the server-side function to send the email
+    var inputBody = document.getElementById("inputBody").value;
+    var logMessage = getBody ? "Getting Greet Body..." : "Greet Function Executed, check Log output";
+    var errorMessage = document.getElementById("errorMessage");
+  
+    // Function to send an email and handle success/failure
+    function sendAndHandleEmail(inputRecipient, inputBody, getBody) {
+      google.script.run
+        .withSuccessHandler(function(logOutput) {
+          alert(logMessage);
+          document.getElementById("logOutput").textContent = logOutput;
+          showSuccessMessage();
+        })
+        .withFailureHandler(function(error) {
+          errorMessage.textContent = error;
+        })
+        .sendEmail(inputRecipient, inputBody, getBody);
+    }
     if (getBody) {
-      google.script.run.withSuccessHandler(function(logOutput) {
-        alert("Getting Greet Body...");
-        document.getElementById("logOutput").textContent = logOutput;
-      }).withFailureHandler(function(error) {
-        document.getElementById("errorMessage").textContent = error;
-      }).sendEmail(inputRecipient,getBody);
-    } 
-    else if(inputRecipient){
+      document.getElementById("PleaseWait").style.display = "block";
+      sendAndHandleEmail(inputRecipient, inputBody ? inputBody : null, true);
+    }
+    else if (inputRecipient){
       if (!isValidEmail(inputRecipient)) {
-        document.getElementById("errorMessage").textContent = 'Invalid email address';
+        errorMessage.textContent = 'Invalid email address';
       }
       else {
-        google.script.run.withSuccessHandler(function(logOutput) {
-          alert("Greet Function Executed, check Log output");
-          document.getElementById("logOutput").textContent = logOutput;
-        }).withFailureHandler(function(error) {
-          document.getElementById("errorMessage").textContent = error;
-        }).sendEmail(inputRecipient);
+        document.getElementById("PleaseWait").style.display = "block";
+        sendAndHandleEmail(inputRecipient, inputBody ? inputBody : null, false);
       }
     }
-    // comment this else block for auto execute default value of reciepent
     else {
-      google.script.run.withSuccessHandler(function(logOutput) {
-        alert("Greet Function Executed to all defaul recipents, check Log output");
-        document.getElementById("logOutput").textContent = logOutput;
-      }).withFailureHandler(function(error) {
-        document.getElementById("errorMessage").textContent = error;
-      }).sendEmail(inputRecipient);
+      // errorMessage.textContent = 'Recipient email is required';
+      // uncomment this else block for auto execute default value of recipient
+      errorMessage.textContent = 'Recipient email is required, executing default recipents';
+      sendAndHandleEmail(inputRecipient, inputBody ? inputBody : null, false);
+      document.getElementById("ExecutionsLink").style.display = "block";
     }
-    
-    // Update the link's href attribute when the button is clicked
-    document.getElementById("ExecutionsLink").href = 'https://script.google.com/home/projects/161G-77Z9OPj-Zg2lwcFmXQI3oOsmYlP6Iw4oPe5QdXJEioul3ITUzvtD/executions';
-    document.getElementById("ExecutionsLink").style.display = "block"; 
+    if (errorMessage.textContent === '') {
+      document.getElementById("PleaseWait").style.display = "block";
+    }
   });
-
-  // Function to update the quota remaining after sending email
-  function updateQuotaRemaining() {
-    google.script.run.withSuccessHandler(function(logOutput) {
-      document.getElementById("logOutput").textContent = logOutput;
-    }).getQuotaRemaining();
+  
+  function showSuccessMessage() {
+    document.getElementById("successMessage").style.display = "block";
   }
-
-  // Initialize the quota remaining on page load
-  window.onload = function() {
-    updateQuotaRemaining();
-  };
-
+  
   function isValidEmail(email) {
     var emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     return emailRegex.test(email);
   }
+  
+  function checkAnswer(correctAnswer) {
+    var selectedAnswer = document.querySelector('input[name="answer"]:checked');
+    var resultDiv = document.getElementById('result');
+    if (selectedAnswer) {
+      var userAnswer = selectedAnswer.value;
+      resultDiv.innerHTML = userAnswer === correctAnswer ? 'Correct!' : 'Incorrect. The correct answer is: ' + correctAnswer;
+    } else {
+      resultDiv.innerHTML = 'Please select an answer before checking.';
+    }
+  }
+  
+  // Initialize the quota remaining on page load
+  window.onload = function() {
+    google.script.run.withSuccessHandler(function(logOutput) {
+      document.getElementById("logOutput").textContent = logOutput;
+    }).getQuotaRemaining();
+  };
+  
 </script>
 </body>
 </html>
