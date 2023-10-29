@@ -1,4 +1,4 @@
-// Send daily emails with positive messages, jokes, fun facts, and quotes to a list of recipients.
+// Send daily emails with positive messages, jokes, fun facts, and quotes to a list of recipients for https://script.google.com/
 function doGet(e) {
   return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('Daily Email Sender')
@@ -8,116 +8,178 @@ function getuser() {
   var email = Session.getActiveUser().getEmail();
   return email;
 }
-function sendEmail(inputRecipient, getBody) {
   // Define the list of recipient email addresses and names as an object
-  var recipients = {
-    'khanjordan440@gmail.com': '',
-    'khangayasuddin99@gmail.com': 'Gayasuddin Khan',
-    'rajutarannum143@gmail.com': 'MD Shamshad',
-    'banumuskaan998@gmail.com': 'Muskaan Banu',
-    'khatunsahara77@gmail.com': 'Sahara Khatun',
-    'mdkutubuddin33@gmail.com': 'MD Kutubuddin',
-    'tabassumsheikh2708@gmail.com': 'Tabassum Nisha',
-    'realshad07@gmail.com': 'Shad Perwez',
-    'safiquddinkhan@gmail.com': 'Safiquddin Khan',
-  };
-  // Define the list of recipients for whom you want to send Hindi jokes
-  var hindirecipients = [
-    'khanjordan440@gmail.com',
-    'banumuskaan998@gmail.com',
-    'realshad07@gmail.com',
-    'mdkutubuddin33@gmail.com',
-    'safiquddinkhan@gmail.com',
-  ];
-  var ccAddresses = [];
-  var successFlag = false; 
-  apiUrl1 = "https://v2.jokeapi.dev/joke/Any?format=txt";
-  apiUrl2 = "https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,sexist&format=txt";
-  emailid = "safiquddinkhan@gmail.com";
-  var dayOfWeek = getDayOfWeek();
-  var isHoliday = getHolidayInfo().isHoliday;
-  var holidayName = getHolidayInfo().holidayName;
-  // Subject of the email
-  var subject = getTimeOfDay() + ", It's " + dayOfWeek;
-  var name = 'Friend';
-  var emailBody = '';
+var recipients = {
+  'safiquddinkhan@gmail.com': 'Safiq Khan,1996-08-19',
+  'khangayasuddin99@gmail.com': 'Gayasuddin Khan,1967-04-15',
+  'khatunsahara77@gmail.com': 'Sahara Khatun,1971-01-02',
+  'rajutarannum143@gmail.com': 'MD Shamshad,1989-10-25',
+  'banumuskaan998@gmail.com': 'Muskaan Banu,2004-02-21',
+  'mdkutubuddin33@gmail.com': 'MD. Kutubuddin,1994-08-31',
+  'tabassumsheikh2708@gmail.com': 'Tabassum Nisha,1994-08-27',
+  'realshad07@gmail.com': 'Shad Perwez,1994-10-14',
+  'sahazadshaikh@gmail.com': 'Sahazad Shaikh,1985-11-21',
+  'wascr7zafar@gmail.com' : 'Waseem Zafar,2006-12-14',
+  'sheikrizwanrzn@gmail.com' : 'Sheikh Rizwan,1996-12-1',
+};
+// Define the list of recipients for whom you want to send Hindi jokes
+var hindirecipients = [
+  'khanjordan440@gmail.com', 'banumuskaan998@gmail.com', 'realshad07@gmail.com', 'mdkutubuddin33@gmail.com',
+  'safiquddinkhan@gmail.com', 'sheikrizwanrzn@gmail.com',
+];
+
+var gmArray = [
+  "<img src='https://drive.google.com/uc?id=1r9VPVfDsRTKNXNAh4_jmJZlAcW2KFsXx' alt='Good Morning' width='147' height='27.5' />\n",
+  "<img src='https://drive.google.com/uc?id=1RMwbOwZuRNCT_oUvJhjUIg09n6Y4j9Bv' alt='Good Morning' width='147' height='18' />\n",
+];
+var currentTime = new Date();
+var hours = currentTime.getHours();
+let ccAddresses = [];
+let successFlag = false; 
+var apiUrl1 = "https://v2.jokeapi.dev/joke/Any?format=txt";
+var apiUrl2 = "https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,sexist&format=txt";
+var dayOfWeek = getDayOfWeek();
+var holidayInfo = getHolidayInfo();
+var isHoliday = holidayInfo.isHoliday;
+var holidayName = holidayInfo.holidayName;
+var holidayType = holidayInfo.holidayType;
+var subject = `${getTimeOfDay()}, It's ${dayOfWeek}`;
+let name = 'Friend';
+let emailBody = '';
+
+function sendEmail(inputRecipient, inputBody, getBody) {
   // Loop through the recipients object and send an email to each recipient
   for (var recipientEmail in recipients) {
     if (!isValidEmail(recipientEmail)) {
       console.log("Invalid email address "+ recipientEmail);
-      // return 'Invalid email address';
+      //return 'Invalid email address';
       continue;
     }
-    var recipientName = recipients[recipientEmail];
+    var recipientNameAndDOB = recipients[recipientEmail];
+    var [recipientName, recipientDOB] = recipientNameAndDOB.split(',');
+    // var recipientName = recipients[recipientEmail];
     var englishJoke = getEnglishJoke(recipientEmail);
-    var probability = Math.random() < 0.5; // 50% chance of including an English joke
-    var daymessage = probability ? dayMessages[dayOfWeek] : dayFun[dayOfWeek];
+    var probability = Math.random() < 0.5; // 50% chance of including an HindiJoke
+    var daymessage = dayMessages[dayOfWeek][Math.round(Math.random())];
     // check recipientEmail or inputRecipient in the hindirecipients
     if (hindirecipients.includes(recipientEmail) || (inputRecipient && hindirecipients.includes(inputRecipient))) {
-      var joke = probability ? getCustomJoke(apiUrl1) : getHindiJoke(); // Randomly select a joke
+      var joke = probability ? getHindiJoke() : getCustomJoke(apiUrl1); // Randomly select a joke
     } else { 
       var joke = getCustomJoke(apiUrl2); // Send a custom joke for others
     }
-    if (!inputRecipient && !getBody) {
     name = (recipientName || getName(recipientEmail)) || name;
-    } else if (inputRecipient) {
-      name = (recipients[inputRecipient] || getName(inputRecipient)) || name;
-    } else if (getBody) {
-      name = (recipients[getuser()] || getName(getuser())) || getuser();
-    } else {return name;}
-    emailBody = "Dear " + name + ",\n\n";
-    if (isHoliday) {
-    emailBody += "Today is a holiday in India: " + holidayName + "\n\n";
-    } else {
-    emailBody += (daymessage || "Have a good day!") + "\n\n";
+    var user = getuser();
+    // if (inputRecipient && recipients[inputRecipient]) {
+    //   name = recipients[inputRecipient].split(',')[0];
+    // } else if (getBody && recipients[user]) {
+    //   name = recipients[user].split(',')[0];
+    // } else {
+    //   name = getName(inputRecipient || user) || name;
+    // }
+    var getbgurl = bgUrl();
+    var bgurl = getbgurl.bgurl;
+    var textColor = getbgurl.textColor;
+    emailBody = `<div style="background-image: url('${bgurl}'); background-size: cover; background-repeat: no-repeat; background-position: center center; min-height: 400px; color: ${textColor};">`;
+    // For Download bgurl
+    // emailBody += `<a href="${bgurl}" download="background_image.jpg" style="color: ${textColor};"></a>`;
+    emailBody += `Dear ${name}, `;
+    if (hours >= 5 && hours < 12) {
+      var randomIndex = Math.floor(Math.random() * gmArray.length);
+      var gm = gmArray[randomIndex];
+      emailBody += gm;
     }
-    emailBody += "Here's to another day of laughter, love, and making wonderful memories together as a family ❤️.\n\n" +
-    "As the sun rises, may your heart be light, and your smile be bright. 🌟\n\n" +
-    "Here's a joke to start your day with a chuckle:\n" + englishJoke + "\n\n" +
-    "And here's another one just for fun:\n" + joke + "\n\n" +
-    "Did you know? 🤓\n" + getFunFact() + "\n\n" +
-    "Your daily dose of inspiration: 📖 \n" + getQuote() + "\n\n" +
-    "Always remember, you're amazing and appreciated every single day. 🎉\n" +
-    "Take care of yourself and make today an incredible one! 🌞\n\n" +
-    "Warmest wishes,😊\n";
-    if (getuser() === 'safiquddinkhan@gmail.com') {
+    if (isBirthday(recipientDOB)) {
+      subject = `${getTimeOfDay()}, Happy Birthday 🎉`;
+      emailBody += `<p>&#129395; Wishing you a very Happy Return of the Day, ${name}! &#127874;</p>`;
+    }
+    if (inputBody) {
+      emailBody += `<p>&#128172; ${inputBody}</p>`;
+    }
+    if (isHoliday) {
+      emailBody += `<p>&#127809; Today is a holiday for ${holidayType}: ${holidayName}</p>`;
+    } else {
+      emailBody += `<p>${daymessage || "&#127775; Have a good day!"}</p>`;
+    }
+    emailBody += '&#10084; Here\'s to another day of laughter, love, and making wonderful memories together as a family.<br><br>';
+    emailBody += '&#127793; As the sun rises, may your heart be light, and your smile be bright.<br><br>';
+    emailBody += '&#128513; Here\'s a joke to start your day with a smile:<br>';
+    emailBody += `${englishJoke}<br><br>`;
+    emailBody += '&#129488; Did you know? Here\'s an interesting fact:<br>';
+    emailBody += `${getFunFact()}<br><br>`;
+    emailBody += '&#128161; Expand your knowledge with this trivia:<br>';
+    emailBody += `${fetchTrivia()}<br><br>`;
+    emailBody += '&#128521; And here\'s another one just for fun:<br>';
+    emailBody += `${joke}<br><br>`;
+    emailBody += '&#128218; Time for some daily wisdom:<br>';
+    emailBody += `${getQuote()}<br><br>`;
+    emailBody += '&#127800; Take care of yourself and make today an incredible one!<br><br>';
+    emailBody += 'Warmest wishes, &#128522;<br>';
+    if (user === 'khanjordan440@gmail.com' || user === 'safiquddinkhan@gmail.com') {
       emailBody += 'Safiquddin Khan';
     } else {
-      emailBody += (recipients[getuser()] || getName(getuser())) + '\n' + getuser();
+      emailBody += (recipients[user] ? recipients[user].split(',')[0] : getName(user)) + '<br>' + user;
     }
-    if (!inputRecipient && !getBody) {
+    // if (inputBody && inputBody.length >= 50) {
+    //   var emailBody = inputBody; // Define emailBody if length is met
+    // }
+    // if (!inputRecipient && !getBody) {
       try {
-        MailApp.sendEmail(recipientEmail, subject, emailBody);
-        ccAddresses.push(recipientEmail);
-        successFlag = true;
-        console.log("Email sent successfully to: " + recipientEmail + '\nHere is the email body:\n' + emailBody);
+        var threads = GmailApp.search('-in:sent' + 'subject:' + subject + 'to:' + recipientEmail);
+        if (threads.length > 0) {
+          // If a thread with the same subject is found, reply to the latest email in the thread
+          var latestThread = threads[0];
+          var replyEmail = latestThread.getMessages()[0];
+          // var replyEmail = latestThread.getMessages().pop();
+          replyEmail.reply(subject, { htmlBody: emailBody });
+          ccAddresses.push(recipientEmail);
+          successFlag = true;
+          console.log(`Replied to an existing subject: ${subject}\nHere is the email body:\n${emailBody}`);
+        } else {
+          MailApp.sendEmail(recipientEmail, subject, '', { htmlBody: emailBody });
+          ccAddresses.push(recipientEmail);
+          successFlag = true;
+          console.log(`Email sent successfully to: ${recipientEmail}\nHere is the email body:\n${emailBody}`);
+        }
       } catch (error) {
-        console.error("Error Sending a mail: " + error + '\nHere is the email body:\n' + emailBody);
+        console.error(`Error Sending a mail to: ${recipientEmail}\nHere is the Error:${error}`);
       }
-    }
+    // }
     debugger;
   }
-  if (inputRecipient) {
-    try {
-      MailApp.sendEmail(inputRecipient, subject, emailBody);
-      ccAddresses.push(inputRecipient);
-      successFlag = true;
-      console.log("Email sent successfully to: " + inputRecipient + '\nHere is the email body:\n' + emailBody);
-    } catch (error) {
-      console.error("Error Sending an email: " + error + '\nHere is the email body:\n' + emailBody);
-    }
-  }
-  else if (getBody) {
-    console.log("Here is your Greet body:\n\n" + emailBody);
-    return emailBody;
-  }
+  // if (inputRecipient) {
+  //   try {
+  //     var threads = GmailApp.search('-in:sent' + 'subject:' + subject + 'to:' + inputRecipient);
+  //     if (threads.length > 0) {
+  //       // If a thread with the same subject is found, reply to the latest email in the thread
+  //       var latestThread = threads[0];
+  //       var replyEmail = latestThread.getMessages()[0];
+  //       replyEmail.reply(subject, { htmlBody: emailBody });
+  //       ccAddresses.push(inputRecipient);
+  //       successFlag = true;
+  //       console.log(`Replied to an existing subject: ${subject}\nHere is the email body:\n${emailBody}`);
+  //     } else {
+  //       MailApp.sendEmail(inputRecipient, subject, '', { htmlBody: emailBody });
+  //       ccAddresses.push(inputRecipient);
+  //       successFlag = true;
+  //       console.log("Email sent successfully to: " + inputRecipient + '\nHere is the email body:\n' + emailBody);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error Sending an email: " + error + '\nHere is the email body:\n' + emailBody);
+  //   }
+  // }
+  // else if (getBody) {
+  //   console.log("Here is your Greet body:\n\n" + emailBody);
+  //   return emailBody;
+  // }
   var ccAddresseslist = ccAddresses.join('\n');
-  if (successFlag) {
-    Logger.log("Email sent successfully to:" + ccAddresseslist + '\n\nHere is the email body:\n\n' + emailBody);
-    return("Email sent successfully to:" + ccAddresseslist + '\n\nHere is the email body:\n\n' + emailBody);
-  } else {
-    Logger.log('Error Sending Email' );
-    return ('Error Sending Email' );
+  try {
+    if (successFlag) {
+      Logger.log(`Email sent successfully to:${ccAddresseslist}\n\nHere is the email body:\n${emailBody}`);
+      return `Email sent successfully to:${ccAddresseslist}\n\nHere is the email body:\n${emailBody}`;
+    }
+  } catch (error) {
+    Logger.log("Error Sending an email:" + error);
+    return ('Error Sending an email:' + error );
   }
 }
 
@@ -133,13 +195,13 @@ function getName(emailid) {
     // Logger.log('invalidgetName')
   }
   var name = emailid.split("@")[0]; // Get the part before the @ symbol
+  name = name.split('.').join(' '); // Replace dots with spaces
   name = name.replace(/[0-9]+/g, ''); // Remove any numbers
   name = name.replace(/[^a-zA-Z ]/g, ''); // Remove any special characters
   name = name.trim(); // Remove leading and trailing spaces
   name = name.charAt(0).toUpperCase() + name.slice(1); // Capitalize the first letter
   return name;
 }
-
 
 function getEnglishJoke(recipient) {
   try {
@@ -156,18 +218,53 @@ function getEnglishJoke(recipient) {
   }
 }
 
+function convertEmojisToEntities(text) {
+  // Define a mapping of emoji characters to their HTML entities
+  var emojiEntities = {
+    '🧐': '&#129488;', '😆': '&#128514;', '🤣': '&#129315;', '😋': '&#128523;', '😉': '&#128521;', 
+    '😂': '&#128514;', '😃': '&#128515;', '😊': '&#128522;', '😏': '&#128527;', '😁': '&#128513;',
+    '😎': '&#128526;', '😬': '&#128556;', '😝': '&#128541;', '😜': '&#128540;', '👗': '&#128089;',
+    '👓' : '&#128083;', '💄': '&#128132;', '👠': '&#128096;', '🎀': '&#127873;',
+    // Add more emoji-to-HTML-entity mappings as needed
+  };
+  // Use a regular expression to search for and replace emojis with HTML entities
+  var emojiRegex = new RegExp(Object.keys(emojiEntities).join('|'), 'g');
+  return text.replace(emojiRegex, function (match) {
+    return emojiEntities[match];
+  });
+}
+
 function getHindiJoke() {
   try {
     var apiUrl = "https://hindi-jokes-api.onrender.com/jokes/?api_key=e8500b9212bad378bd76bab62fac"; 
     // Make an HTTP GET request to the API
     var response = UrlFetchApp.fetch(apiUrl);
     var jokeData = JSON.parse(response.getContentText());
-    return jokeData.jokeContent;
+    var jokeContent = convertEmojisToEntities(jokeData.jokeContent);
+    return jokeContent;
   } catch (error) {
     console.error("Error fetching a Hindi joke: " + error);
-    return "अगर आप अपने घर में कचरा नहीं रख सकते; तो दिमाग में कचरा क्यों रखते हो ??";
+    return "हालचाल पूछने का जमाना गया साहिब,आदमी online दिख जाए तो समझ लेना सब ठीक है.भगवान हम सबको online रखें.";
   }
 }
+
+function fetchTrivia() {
+  try {
+    var categoryIds = [9, 17, 22, 30]; // Randomly select a category ID
+    var selectedCategoryId = categoryIds[Math.floor(Math.random() * categoryIds.length)]; 
+    var apiUrl = "https://opentdb.com/api.php?amount=1&category=" + selectedCategoryId + "&type=multiple";
+    var response = UrlFetchApp.fetch(apiUrl);
+    var data = JSON.parse(response.getContentText());
+    var question = data.results[0].question;
+    var correctAnswer = data.results[0].correct_answer;
+    var trivia = question + "(Answer: " + correctAnswer + ")";
+    return trivia;
+  }
+  catch (error) {
+    console.error("Error fetching trivia: " + error);
+    return "Which is the largest freshwater lake in the world?\n(Answer: Lake Superior )";
+  }
+}  
 
 function getCustomJoke(apiUrl) {
   try {
@@ -177,7 +274,7 @@ function getCustomJoke(apiUrl) {
     return jokeText;
   } catch (error) {
     console.error("Error fetching a custom joke: " + error);
-    return "Algorithm: A word used by programmers when they don't want to explain how their code works.";
+    return "Dark humor is like food, not everyone gets it.";
   }
 }
 
@@ -206,23 +303,13 @@ function getQuote() {
 }
 
 var dayMessages = {
-  'Sunday': 'Wishing you a relaxing and peaceful Sunday.',
-  'Monday': 'Start your week with enthusiasm and determination. Happy Monday!',
-  'Tuesday': 'Keep up the great work! It\'s Tuesday! ',
-  'Wednesday': 'Halfway through the week! Keep pushing forward.',
-  'Thursday': 'You\'re almost there! Thursday is your day to shine.',
-  'Friday': 'Happy Friday! Time to relax and enjoy the weekend soon.',
-  'Saturday': 'Have a fantastic Saturday filled with joy and adventure!',
-};
-
-var dayFun = {
-  'Sunday': 'Sunny Sunday!',
-  'Monday': 'Happy Monday!',
-  'Tuesday': 'Terrific Tuesday!',
-  'Wednesday': 'Wonderful Wednesday!',
-  'Thursday': 'Thrilling Thursday!',
-  'Friday': 'Fantastic Friday!',
-  'Saturday': 'Super Saturday!'
+  'Sunday': ['&#127807; Wishing you a relaxing and peaceful Sunday.','&#127880; Sunny Sunday'],
+  'Monday': ['&#128640; Start your week with enthusiasm and determination. Happy Monday!','&#128640; Happy Monday'],
+  'Tuesday': ['&#128077; Keep up the great work! It\'s Tuesday!','&#128077; Terrific Tuesday'],
+  'Wednesday': ['&#128170; Halfway through the week! Keep pushing forward.','&#128170; Wonderful Wednesday'],
+  'Thursday': ['&#128039; You\'re almost there! Thursday is your day to shine.','&#128039; Thrilling Thursday'],
+  'Friday': ['&#127939; Happy Friday! Time to relax and enjoy the weekend soon.','&#127939; Fantastic Friday'],
+  'Saturday': ['&#127881; Have a fantastic Saturday filled with joy and adventure!','&#128692; Super Saturday'],
 };
 
   // Function to get the current day of the week
@@ -236,35 +323,93 @@ function getTimeOfDay() {
   var currentTime = new Date();
   var hours = currentTime.getHours();
   if (hours >= 5 && hours < 12) {
-    return "Good Morning 🌞";
+    return "🌄 Good Morning ☕";
   } else if (hours >= 12 && hours < 17) {
-    return "Good Afternoon 🌅";
+    return "🌞 Good Afternoon 👨‍💻";
+  } else if (hours >= 17 && hours < 21) {
+    return "🌇 Good Evening 🏏";
   } else {
-    return "Good Evening 🌙";
+    return "🌃 Good Night ⏰";
   }
 }
+
+
+function isBirthday(dob) {
+  if (!dob) {
+    return false; // Return false if there is no DOB provided
+  }
+  var dobDate = new Date(dob);
+  var today = new Date();
+  return (
+    dobDate.getDate() === today.getDate() &&
+    dobDate.getMonth() === today.getMonth() &&
+    dobDate.getFullYear() !== today.getFullYear()
+  );
+}
+
 // https://holidayapi.com/fee77042-0325-4296-b257-d2e728641779
 function getHolidayInfo() {
   try {
     var apiKey = 'smff3hYqk4Plombur6GrHzpYxQr452sq'; // Replace with your Calendarific API key
-    var year = new Date().getFullYear();
-    var apiUrl = 'https://calendarific.com/api/v2/holidays?api_key='+ apiKey + '&country=IN&year=' + year;
+    var today = new Date();
+    var year = today.getFullYear();
+    var month = today.getMonth() + 1;
+    var day = today.getDate();
+    var formattedDate = year + "-" + String(month).padStart(2, '0') + "-" + String(day).padStart(2, '0');
+    var apiUrl = 'https://calendarific.com/api/v2/holidays?api_key=' + apiKey + '&country=IN&year=' + year + '&month=' + month;
     var response = UrlFetchApp.fetch(apiUrl);
     var holidaysData = JSON.parse(response.getContentText());
     var indianHolidays = holidaysData.response.holidays;
-    var today = new Date();
-    var formattedDate = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0');
-    
+    // if (holidaysData.meta.code === 200) { }
+    // var allowedTypes = ["Gazetted Holiday", "Season", "Hinduism", "Holiday", "Restricted Holiday", "Observance", "Common local holiday", "Central Government Holiday", "Christian"];
+    //  && allowedTypes.includes(holiday.primary_type)
     for (var i = 0; i < indianHolidays.length; i++) {
       var holiday = indianHolidays[i];
-      if (holiday.date === formattedDate && holiday.type === "public") {
-        return { isHoliday: true, holidayName: holiday.name };
+      //   Logger.log(holiday.type[i]);
+      if (holiday.date.iso === formattedDate) {
+        if (holiday.description.includes("restricted")) {
+          return { isHoliday: true, holidayName: holiday.name, holidayType: holiday.type[0] };
+        } else {
+          return { isHoliday: true, holidayName: holiday.description, holidayType: holiday.type[0] };
+        }
       }
     }
+    Logger.log('no matching holiday found');
     return { isHoliday: false, holidayName: "" };
   } catch (error) {
-    //console.error('Error fetching Indian holidays: ' + error);
+    console.error('Error fetching Indian holidays: ' + error);
     return "Can't fetch isHoliday";
+  }
+}
+
+
+// Function to get a random image URL from the Google Drive folder
+function bgUrl() {
+  try {
+    var blackFolder = '15nzkWXEKWKP7oSxQKTT0VxfbijGDixW0';
+    var whiteFolder = '1UFxtCae8fBOI6X0Lx01AAc9lAnTdUHeL';
+    var folderId = Math.random() < 0.7 ? blackFolder : whiteFolder;
+    var folder = DriveApp.getFolderById(folderId);
+    var files = folder.getFilesByType(MimeType.JPEG); // You can adjust the file type as needed
+
+    var imageUrls = [];
+    while (files.hasNext()) {
+      var file = files.next();
+      var imageUrl = file.getDownloadUrl(); // Get the image's download URL
+      imageUrls.push(imageUrl);
+    }
+    
+    if (imageUrls.length > 0) {
+      var randomIndex = Math.floor(Math.random() * imageUrls.length);
+      var bgurl = imageUrls[randomIndex];
+      var textColor = folderId === blackFolder ? 'white' : 'black';
+      return { bgurl: bgurl, textColor: textColor };
+    }
+  } catch (e) {
+    // Handle any exceptions that may occur
+    console.error("An error occurred: " + e);
+    return { bgurl: 'https://drive.google.com/uc?id=1VtLbzesdELI47mF14h9AsfOqF7yU8bSX', textColor: 'white' };
+    // return { bgurl: '', textColor: '' };
   }
 }
 
