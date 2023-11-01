@@ -77,6 +77,11 @@
         padding: 10px;
       }
     }
+  #sendEmailButton.loading {
+    cursor: not-allowed;
+    background-color: gray;
+    color: white;
+  }
   </style>
 </head>
 <body>
@@ -104,11 +109,12 @@
     <div>
       <input type="checkbox" id="getBody" aria-label="Get Greet Body only">
       <label for="getBody">Get GreetBody only</label>
-      <textarea id="inputBody" placeholder="Enter your Message" aria-label="Email Body"></textarea>
+      <textarea id="inputBody" placeholder="Enter your Message(Optional)" aria-label="Email Body"></textarea>
     </div>
     <!-- Input field for recipient's email -->
-    <input type="email" id="inputRecipient" placeholder="Recipient's Email" aria-label="Recipient's Email">
-    
+    <textarea id="inputRecipient" placeholder="Recipient's Email(or example@gmail.com,name,1996-08-15)" aria-label="Recipient's Email" onchange="validateInput()"></textarea>
+    <a id="validationMessage"></a>
+
     <!-- Button to send the email -->
     <button id="sendEmailButton" aria-label="Execute">Execute</button>
     <a id="PleaseWait" style="display: none;">Please Wait until Popup</a>
@@ -124,6 +130,8 @@
 <script>
   // JavaScript code for handling user interactions
   document.getElementById("sendEmailButton").addEventListener("click", function() {
+    var sendButton = document.getElementById("sendEmailButton");
+    sendButton.classList.add("loading"); // Add loading class
     var inputRecipient = document.getElementById("inputRecipient").value;
     var getBody = document.getElementById("getBody").checked;
     var inputBody = document.getElementById("inputBody").value;
@@ -137,9 +145,11 @@
           alert(logMessage);
           document.getElementById("logOutput").textContent = logOutput;
           showSuccessMessage();
+          sendButton.classList.remove("loading"); // Remove loading class
         })
         .withFailureHandler(function(error) {
           errorMessage.textContent = error;
+          sendButton.classList.remove("loading"); // Remove loading class
         })
         .sendEmail(inputRecipient, inputBody, getBody);
     }
@@ -148,7 +158,7 @@
       sendAndHandleEmail(inputRecipient, inputBody ? inputBody : null, true);
     }
     else if (inputRecipient){
-      if (!isValidEmail(inputRecipient)) {
+      if (!validateInput(inputRecipient)) {
         errorMessage.textContent = 'Invalid email address';
       }
       else {
@@ -171,12 +181,34 @@
   function showSuccessMessage() {
     document.getElementById("successMessage").style.display = "block";
   }
+
+  function validateInput(email) {
+    var inputElement = document.getElementById("inputRecipient");
+    var validationMessageElement = document.getElementById("validationMessage");
   
-  function isValidEmail(email) {
+    var inputText = inputElement.value.trim();
+    var parts = inputText.split(",");
     var emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    return emailRegex.test(email);
-  }
   
+    if (parts.length >= 1) {
+      var email = parts[0].trim();
+  
+      if (emailRegex.test(email)) {
+        // Email is valid
+        validationMessageElement.textContent = "Email is valid.";
+        validationMessageElement.style.color = "green";
+        // You can access the other parts like parts[1] (name) and parts[2] (date of birth) here
+      } else {
+        validationMessageElement.textContent = "Email is invalid.";
+        validationMessageElement.style.color = "red";
+      }
+      return emailRegex.test(email);
+    } else {
+      validationMessageElement.textContent = "Please enter a valid email.";
+      validationMessageElement.style.color = "red";
+    }
+  }
+
   function checkAnswer(correctAnswer) {
     var selectedAnswer = document.querySelector('input[name="answer"]:checked');
     var resultDiv = document.getElementById('result');
