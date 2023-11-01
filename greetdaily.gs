@@ -1,4 +1,4 @@
-// Send daily emails with positive messages, jokes, fun facts, and quotes to a list of recipients for https://script.google.com/
+// Send daily emails with positive messages, jokes, fun facts, and quotes to a list of recipients.
 function doGet(e) {
   return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('Daily Email Sender')
@@ -25,7 +25,7 @@ var recipients = {
 // Define the list of recipients for whom you want to send Hindi jokes
 var hindirecipients = [
   'khanjordan440@gmail.com', 'banumuskaan998@gmail.com', 'realshad07@gmail.com', 'mdkutubuddin33@gmail.com',
-  'safiquddinkhan@gmail.com', 'sheikrizwanrzn@gmail.com',
+  'safiquddinkhan@gmail.com', 'sheikrizwanrzn@gmail.com', 'wascr7zafar@gmail.com',
 ];
 
 var gmArray = [
@@ -45,19 +45,20 @@ var holidayName = holidayInfo.holidayName;
 var holidayType = holidayInfo.holidayType;
 var subject = `${getTimeOfDay()}, It's ${dayOfWeek}`;
 let name = 'Friend';
-let emailBody = '';
+var callError = '';
 
 function sendEmail(inputRecipient, inputBody, getBody) {
   // Loop through the recipients object and send an email to each recipient
   for (var recipientEmail in recipients) {
+    var recipientInfo = recipients[recipientEmail];
+    var recipientInfoArray = recipientInfo.split(',');
+    var recipientName = recipientInfoArray[0];
+    var recipientDOB = recipientInfoArray[1];
     if (!isValidEmail(recipientEmail)) {
       console.log("Invalid email address "+ recipientEmail);
       //return 'Invalid email address';
       continue;
     }
-    var recipientNameAndDOB = recipients[recipientEmail];
-    var [recipientName, recipientDOB] = recipientNameAndDOB.split(',');
-    // var recipientName = recipients[recipientEmail];
     var englishJoke = getEnglishJoke(recipientEmail);
     var probability = Math.random() < 0.5; // 50% chance of including an HindiJoke
     var daymessage = dayMessages[dayOfWeek][Math.round(Math.random())];
@@ -69,20 +70,29 @@ function sendEmail(inputRecipient, inputBody, getBody) {
     }
     name = (recipientName || getName(recipientEmail)) || name;
     var user = getuser();
-    // if (inputRecipient && recipients[inputRecipient]) {
-    //   name = recipients[inputRecipient].split(',')[0];
-    // } else if (getBody && recipients[user]) {
-    //   name = recipients[user].split(',')[0];
-    // } else {
-    //   name = getName(inputRecipient || user) || name;
-    // }
+    
+    if (inputRecipient) {
+      var emailParts = inputRecipient.split(",");
+      var inputEmail = emailParts[0].trim();
+      var inputName = emailParts[1];
+      recipientDOB = emailParts[2];
+    
+      if (isValidEmail(inputEmail)) {
+        name = inputName || recipients[inputEmail]?.split(',')[0] || getName(inputEmail) || name;
+      } else {
+        console.log("Invalid email address: " + inputEmail);
+        continue;
+      }
+    } else if (getBody) {
+      name = (recipients[user]?.split(',')[0] || getName(user)) || name;
+    }
+
     var getbgurl = bgUrl();
     var bgurl = getbgurl.bgurl;
     var textColor = getbgurl.textColor;
-    emailBody = `<div style="background-image: url('${bgurl}'); background-size: cover; background-repeat: no-repeat; background-position: center center; min-height: 400px; color: ${textColor};">`;
     // For Download bgurl
     // emailBody += `<a href="${bgurl}" download="background_image.jpg" style="color: ${textColor};"></a>`;
-    emailBody += `Dear ${name}, `;
+    var emailBody = `Dear ${name}, `;
     if (hours >= 5 && hours < 12) {
       var randomIndex = Math.floor(Math.random() * gmArray.length);
       var gm = gmArray[randomIndex];
@@ -90,96 +100,73 @@ function sendEmail(inputRecipient, inputBody, getBody) {
     }
     if (isBirthday(recipientDOB)) {
       subject = `${getTimeOfDay()}, Happy Birthday 🎉`;
-      emailBody += `<p>&#129395; Wishing you a very Happy Return of the Day, ${name}! &#127874;</p>`;
+      emailBody += `🥳 Wishing you a very Happy Return of the Day, ${name}! 🎂`;
     }
     if (inputBody) {
-      emailBody += `<p>&#128172; ${inputBody}</p>`;
+      emailBody += `💬 ${inputBody}`;
     }
     if (isHoliday) {
-      emailBody += `<p>&#127809; Today is a holiday for ${holidayType}: ${holidayName}</p>`;
+      emailBody += `🍁 Today is a holiday for ${holidayType}: ${holidayName}</p>`;
     } else {
-      emailBody += `<p>${daymessage || "&#127775; Have a good day!"}</p>`;
+      emailBody += `${daymessage || "🌟 Have a good day!"}`;
     }
-    emailBody += '&#10084; Here\'s to another day of laughter, love, and making wonderful memories together as a family.<br><br>';
-    emailBody += '&#127793; As the sun rises, may your heart be light, and your smile be bright.<br><br>';
-    emailBody += '&#128513; Here\'s a joke to start your day with a smile:<br>';
-    emailBody += `${englishJoke}<br><br>`;
-    emailBody += '&#129488; Did you know? Here\'s an interesting fact:<br>';
-    emailBody += `${getFunFact()}<br><br>`;
-    emailBody += '&#128161; Expand your knowledge with this trivia:<br>';
-    emailBody += `${fetchTrivia()}<br><br>`;
-    emailBody += '&#128521; And here\'s another one just for fun:<br>';
-    emailBody += `${joke}<br><br>`;
-    emailBody += '&#128218; Time for some daily wisdom:<br>';
-    emailBody += `${getQuote()}<br><br>`;
-    emailBody += '&#127800; Take care of yourself and make today an incredible one!<br><br>';
-    emailBody += 'Warmest wishes, &#128522;<br>';
-    if (user === 'khanjordan440@gmail.com' || user === 'safiquddinkhan@gmail.com') {
+    emailBody += '💫 Here\'s to another day of laughter, love, and making wonderful memories together as a family ❤️.';
+    emailBody += '🌱 May your day be filled with positivity and brightness. Rise and shine! ☀.';
+    emailBody += '😃 Here\'s a joke to start your day with a smile:';
+    emailBody += `${englishJoke}`;
+    emailBody += '🧐 Did you know? Here\'s an interesting fact:';
+    emailBody += `${getFunFact()}`;
+    emailBody += '💡 Expand your knowledge with this trivia:';
+    emailBody += `${fetchTrivia()}`;
+    emailBody += '😂 And here\'s another one just for fun:';
+    emailBody += `${joke}`;
+    emailBody += '📚 Time for some daily wisdom:';
+    emailBody += `${getQuote()}`;
+    emailBody += '🎉 Take care of yourself and make today an incredible one! 🌼';
+    emailBody += '🌸 Warmest wishes, 😊';
+    if (user === 'khanjordan440@gmail.com') {
       emailBody += 'Safiquddin Khan';
     } else {
-      emailBody += (recipients[user] ? recipients[user].split(',')[0] : getName(user)) + '<br>' + user;
+      emailBody += (recipients[user] ? recipients[user].split(',')[0] : getName(user));
     }
-    // if (inputBody && inputBody.length >= 50) {
-    //   var emailBody = inputBody; // Define emailBody if length is met
-    // }
-    // if (!inputRecipient && !getBody) {
+    if (inputBody && inputBody.length >= 50) {
+      var emailBody = inputBody; // Define emailBody if length is met
+    }
+    if (!inputRecipient && !getBody) {
       try {
-        var threads = GmailApp.search('-in:sent' + 'subject:' + subject + 'to:' + recipientEmail);
-        if (threads.length > 0) {
-          // If a thread with the same subject is found, reply to the latest email in the thread
-          var latestThread = threads[0];
-          var replyEmail = latestThread.getMessages()[0];
-          // var replyEmail = latestThread.getMessages().pop();
-          replyEmail.reply(subject, { htmlBody: emailBody });
-          ccAddresses.push(recipientEmail);
-          successFlag = true;
-          console.log(`Replied to an existing subject: ${subject}\nHere is the email body:\n${emailBody}`);
-        } else {
-          MailApp.sendEmail(recipientEmail, subject, '', { htmlBody: emailBody });
-          ccAddresses.push(recipientEmail);
-          successFlag = true;
-          console.log(`Email sent successfully to: ${recipientEmail}\nHere is the email body:\n${emailBody}`);
-        }
+        MailApp.sendEmail(recipientEmail, subject, emailBody);
+        ccAddresses.push(recipientEmail);
+        successFlag = true;
+        console.log(`Email sent successfully to: ${recipientEmail}\nHere is the email body:\n${emailBody}`);
       } catch (error) {
+        callError = error;
         console.error(`Error Sending a mail to: ${recipientEmail}\nHere is the Error:${error}`);
       }
-    // }
+    }
     debugger;
   }
-  // if (inputRecipient) {
-  //   try {
-  //     var threads = GmailApp.search('-in:sent' + 'subject:' + subject + 'to:' + inputRecipient);
-  //     if (threads.length > 0) {
-  //       // If a thread with the same subject is found, reply to the latest email in the thread
-  //       var latestThread = threads[0];
-  //       var replyEmail = latestThread.getMessages()[0];
-  //       replyEmail.reply(subject, { htmlBody: emailBody });
-  //       ccAddresses.push(inputRecipient);
-  //       successFlag = true;
-  //       console.log(`Replied to an existing subject: ${subject}\nHere is the email body:\n${emailBody}`);
-  //     } else {
-  //       MailApp.sendEmail(inputRecipient, subject, '', { htmlBody: emailBody });
-  //       ccAddresses.push(inputRecipient);
-  //       successFlag = true;
-  //       console.log("Email sent successfully to: " + inputRecipient + '\nHere is the email body:\n' + emailBody);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error Sending an email: " + error + '\nHere is the email body:\n' + emailBody);
-  //   }
-  // }
-  // else if (getBody) {
-  //   console.log("Here is your Greet body:\n\n" + emailBody);
-  //   return emailBody;
-  // }
-  var ccAddresseslist = ccAddresses.join('\n');
-  try {
-    if (successFlag) {
-      Logger.log(`Email sent successfully to:${ccAddresseslist}\n\nHere is the email body:\n${emailBody}`);
-      return `Email sent successfully to:${ccAddresseslist}\n\nHere is the email body:\n${emailBody}`;
+  if (inputRecipient) {
+    try {
+      MailApp.sendEmail(inputEmail, subject, emailBody);
+      ccAddresses.push(inputEmail);
+      successFlag = true;
+      console.log("Email sent successfully to: " + inputEmail + '\nHere is the email body:\n' + emailBody);
+    } catch (error) {
+      callError = error;
+      console.error("Error Sending an email: " + error + '\nHere is the email body:\n' + emailBody);
     }
-  } catch (error) {
-    Logger.log("Error Sending an email:" + error);
-    return ('Error Sending an email:' + error );
+  }
+  else if (getBody) {
+    console.log("Here is your Greet body:\n\n" + emailBody);
+    return emailBody;
+  }
+  var ccAddresseslist = ccAddresses.join('\n');
+  if (successFlag) {
+    Logger.log(`Email sent successfully to:${ccAddresseslist}\n\nHere is the email body:\n${emailBody}`);
+    return `Email sent successfully to:${ccAddresseslist}\n\nHere is the email body:\n${emailBody}`;
+  } else {
+    Logger.log("Error Sending an email:" + callError);
+    return `Error Sending an email:${callError}`;
   }
 }
 
@@ -350,7 +337,7 @@ function isBirthday(dob) {
 // https://holidayapi.com/fee77042-0325-4296-b257-d2e728641779
 function getHolidayInfo() {
   try {
-    var apiKey = 'smff3hYqk4Plombur6GrHzpYxQr452sq'; // Replace with your Calendarific API key
+    var apiKey = 'smff3hYqk4Plombur6GrHzpYxQr452sqs'; // Replace with your Calendarific API key
     var today = new Date();
     var year = today.getFullYear();
     var month = today.getMonth() + 1;
@@ -419,10 +406,7 @@ function getQuotaRemaining() {
   Logger.log("Remaining email quota: " + emailQuotaRemaining);
   return 'Remaining email quota:' + emailQuotaRemaining;
 }
-// MailApp.sendEmail({
-//   to: inputRecipient,
-//   cc: ccAddresses.join(','), // Use join(',') to convert the array to a comma-separated string
-//   replyTo: replyTo, // Specify the reply-to address here
-//   subject: subject,
-//   body: emailBody
-// });
+// var emailParts = inputRecipient.split(","); // Split the inputRecipient using a comma
+// var recipientEmail = emailParts[0]; // The first part is the email address
+// var recipientName = emailParts[1]; // The second part is the recipient's name
+// var recipientDob = emailParts[2]; // The third part is the date of birth
