@@ -4,52 +4,56 @@ function doGet(e) {
     .setTitle('Daily Email Sender')
     .setSandboxMode(HtmlService.SandboxMode.IFRAME);
 }
+
 function getuser() {
   var email = Session.getActiveUser().getEmail();
   return email;
 }
   // Define the list of recipient email addresses and names as an object
 var recipients = {
-  'safiquddinkhan@gmail.com': 'Safiq Khan,1996-08-19',
+  'safiquddinkhan@gmail.com': 'Safiquddin Khan,1996-08-19',
+  'khangayasuddin99@gmail.com': 'Gayasuddin Khan,1967-04-15',
+  'khatunsahara77@gmail.com': 'Sahara Khatun,1971-01-02',
+  'rajutarannum143@gmail.com': 'MD Shamshad,1989-10-25',
+  'banumuskaan998@gmail.com': 'Muskaan Banu,2004-02-21',
+  'mdkutubuddin33@gmail.com': 'MD. Kutubuddin,1994-08-31',
+  'tabassumsheikh2708@gmail.com': 'Tabassum Nisha,1994-08-27',
+  'realshad07@gmail.com': 'Shad Perwez,1994-10-14',
+  'sahazadshaikh@gmail.com': 'Sahazad Shaikh,1985-11-21',
+  'wascr7zafar@gmail.com' : 'Waseem Zafar,2006-12-14',
+  'sheikrizwanrzn@gmail.com' : 'Sheikh Rizwan,1996-12-1',
 };
 // Define the list of recipients for whom you want to send Hindi jokes
 var hindirecipients = [
-  'safiquddinkhan@gmail.com', 
+  'khanjordan440@gmail.com', 'banumuskaan998@gmail.com', 'realshad07@gmail.com', 'mdkutubuddin33@gmail.com',
+  'safiquddinkhan@gmail.com', 'sheikrizwanrzn@gmail.com', 'wascr7zafar@gmail.com',
 ];
 
 var gmArray = [
   "<img src='https://drive.google.com/uc?id=1r9VPVfDsRTKNXNAh4_jmJZlAcW2KFsXx' alt='Good Morning' width='147' height='27.5' />\n",
   "<img src='https://drive.google.com/uc?id=1RMwbOwZuRNCT_oUvJhjUIg09n6Y4j9Bv' alt='Good Morning' width='147' height='18' />\n",
+  "<img src='https://drive.google.com/uc?id=11mNjlws1MqDKiMz713T_Gipyba9F_UYe' alt='Good Morning' width='147' height='16' />\n",
+  "<img src='https://drive.google.com/uc?id=19wVaq5kiyy4GhjREfin6u-L9MxMah0H6' alt='Good Morning' width='147' height='16' />\n",
+  "<img src='https://drive.google.com/uc?id=1w7I4uPgos_43cpQVIEstEDBdm5pjLeMg' alt='Good Morning' width='147' height='16' />\n",
 ];
-var currentTime = new Date();
-var hours = currentTime.getHours();
+var hours = new Date().getHours();
 let ccAddresses = [];
 let successFlag = false; 
 var apiUrl1 = "https://v2.jokeapi.dev/joke/Any?format=txt";
 var apiUrl2 = "https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,sexist&format=txt";
 var dayOfWeek = getDayOfWeek();
-var holidayInfo = getHolidayInfo();
-var isHoliday = holidayInfo.isHoliday;
-var holidayName = holidayInfo.holidayName;
-var holidayType = holidayInfo.holidayType;
 var subject = `${getTimeOfDay()}, It's ${dayOfWeek}`;
 let name = 'Friend';
 let emailBody = '';
 var callError = '';
 
 function sendEmail(inputRecipient, inputBody, getBody) {
-  // var recipientsData = SpreadsheetApp.getActiveSpreadsheet().getDataRange().getValues();
-  // //var recipientsData = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sheet1').getRange('A2:C').getValues();
-  
-  // for (var i = 0; i < recipientsData.length; i++) {
-  //   var email = recipientsData[i][0];
-  //   var name = recipientsData[i][1];
-  //   var birthdate = recipientsData[i][2];
-    
-  //   recipients[email] = name + "," + birthdate;
-  // }
-  var batchCounter = 0;
+  var holidayInfo = getHolidayInfo();
+  var isHoliday = holidayInfo.isHoliday;
+  var holidayName = holidayInfo.holidayName;
+  var holidayType = holidayInfo.holidayType;
   // Loop through the recipients object and send an email to each recipient
+  var batchCounter = 0;
   for (var recipientEmail in recipients) {
     var recipientInfo = recipients[recipientEmail];
     var recipientInfoArray = recipientInfo.split(',');
@@ -77,7 +81,6 @@ function sendEmail(inputRecipient, inputBody, getBody) {
       var inputEmail = emailParts[0].trim();
       var inputName = emailParts[1];
       recipientDOB = emailParts[2];
-    
       if (isValidEmail(inputEmail)) {
         name = inputName || recipients[inputEmail]?.split(',')[0] || getName(inputEmail) || name;
       } else {
@@ -154,11 +157,12 @@ function sendEmail(inputRecipient, inputBody, getBody) {
         batchCounter++;
         if (batchCounter === 20) {
           Logger.log('Sleep for 1 minute');
-          Utilities.sleep(60000); // Sleep for 1 minute (60,000 milliseconds)
+          Utilities.sleep(60000); // Sleep for 1 minute (60,000 milliseconds) for 20msg/minutes break as per gmail default
           batchCounter = 0; // Reset the batch counter
         }
       } catch (error) {
         callError = error;
+        Utilities.sleep(60000);
         console.error(`Error Sending a mail to: ${recipientEmail}\nHere is the Error:${error}`);
       }
     }
@@ -195,8 +199,8 @@ function sendEmail(inputRecipient, inputBody, getBody) {
     Logger.log(`Email sent successfully to:${ccAddresseslist}\n\nHere is the email body:\n${emailBody}`);
     return `Email sent successfully to:${ccAddresseslist}\n\nHere is the email body:\n${emailBody}`;
   } else {
-    Logger.log("Error Sending an email:" + callError);
-    return `Error Sending an email:${callError}`;
+    Logger.log("Error Sending an emails:" + callError);
+    return `Error Sending an emails:${callError}`;
   }
 }
 
@@ -337,8 +341,6 @@ function getDayOfWeek() {
 }
 
 function getTimeOfDay() {
-  var currentTime = new Date();
-  var hours = currentTime.getHours();
   if (hours >= 5 && hours < 12) {
     return "🌄 Good Morning ☕";
   } else if (hours >= 12 && hours < 17) {
@@ -436,3 +438,7 @@ function getQuotaRemaining() {
   Logger.log("Remaining email quota: " + emailQuotaRemaining);
   return 'Remaining email quota:' + emailQuotaRemaining;
 }
+// var emailParts = inputRecipient.split(","); // Split the inputRecipient using a comma
+// var recipientEmail = emailParts[0]; // The first part is the email address
+// var recipientName = emailParts[1]; // The second part is the recipient's name
+// var recipientDob = emailParts[2]; // The third part is the date of birth
