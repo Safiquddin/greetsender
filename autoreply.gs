@@ -10,11 +10,12 @@ function autoReply() {
   var successFlag = false;
   // var ureadMsgsCount = GmailApp.getInboxUnreadCount();
   // var threads = GmailApp.getInboxThreads(0, ureadMsgsCount);
-  var threads = GmailApp.search('is:unread in:inbox');
-  var allowedDomains = ["gmail.com", "outlook.com", "hotmail.com"];
-  var allowedSenders = ["mdkutubuddin33@gmail.com", "khanjordan440@gmail.com"];
+  var threads = GmailApp.search('is:unread category:primary in:inbox');
+  var ignoredSenders = ["khanjordan440@gmail.com"];
+  // var hoursAgo = new Date();
+  // hoursAgo.setHours(hoursAgo.getHours() - 1);
   var minutesAgo = new Date();
-  minutesAgo.setMinutes(minutesAgo.getMinutes() - 16);
+  minutesAgo.setMinutes(minutesAgo.getMinutes() - 11);
   for (var i = 0; i < threads.length; i++) {
     var thread = threads[i];
     var lastMessage = thread.getLastMessageDate();
@@ -28,23 +29,26 @@ function autoReply() {
         continue;
         }
         var senderEmail = message.getFrom();
-        var senderDomain = senderEmail.substring(senderEmail.lastIndexOf("@") + 1).split('>')[0];
-        console.log(senderDomain);
+        debugger;
+        // var senderDomain = senderEmail.substring(senderEmail.lastIndexOf("@") + 1).split('>')[0];
+        if (ignoredSenders.includes(senderEmail)) {
+          continue;
+        }
         if (!sentEmails.includes(senderEmail)) {
-          if (allowedDomains.includes(senderDomain) || allowedSenders.includes(senderEmail)) {
-            var getsenderName = senderEmail.substring(0, senderEmail.indexOf('<')).trim();
-            var senderName = getsenderName || getSender(senderEmail) ;
-            var subject = message.getSubject(); // not required bdw to get the subject of the email
-            var replyMessage = `Hi ${senderName}, ${getTimeOfDay()} <br><br>`;
-            replyMessage += `Thank you for your email. I have received it and will respond shortly.<br><br>`;
-            replyMessage += `In the meantime, you can reach out to me at  &#128241; <a href='tel:+919776109078'>+91 9776109078</a> if you have any urgent inquiries or questions.<br><br>`;
-            replyMessage += `Sincerely &#128522;,<br>Safiquddin Khan`;
-            message.reply(subject, { htmlBody: replyMessage });
-            // message.markRead();
-            thread.markRead();
-            sentEmails.push(senderEmail);
-            successFlag = true;
-          }
+          var getsenderName = senderEmail.substring(0, senderEmail.indexOf('<')).trim();
+          var senderName = getsenderName || getSender(senderEmail) ;
+          Logger.log(senderName)
+          var subject = message.getSubject(); // not required bdw to get the subject of the email
+          var replyMessage = `Hi ${senderName}, ${getDay()} <br><br>`;
+          replyMessage += `Thank you for your email. I have received it and will respond shortly.<br><br>`;
+          replyMessage += `In the meantime, you can reach out to me at  &#128241; <a href='tel:+919776109078'>+91 9776109078</a> if you have any urgent inquiries or questions.<br><br>`;
+          replyMessage += `Sincerely &#128522;,<br>Safiquddin Khan<br><br>`;
+          replyMessage += `<font color="yellow">auto-reply from system</font>`;
+          message.reply(subject, { htmlBody: replyMessage });
+          message.markRead();
+          // thread.markRead();
+          sentEmails.push(senderEmail);
+          successFlag = true;
         }
       }
     }
@@ -56,7 +60,6 @@ function autoReply() {
     Logger.log('No Unread Emails Found');
   }
 }
-
 function getSender(email) {
   var name = email.split('@')[0]; // Get the part before the @ symbol
   name = name.split('.').join(' '); // Replace dots with spaces
@@ -67,7 +70,7 @@ function getSender(email) {
   return name;
 }
 
-function getTimeOfDay() {
+function getDay() {
   var currentTime = new Date();
   var hours = currentTime.getHours();
   if (hours >= 5 && hours < 12) {
@@ -83,27 +86,32 @@ function getTimeOfDay() {
 
 
 function deleteOldEmails() {
-  var currentDate = new Date();
-  var yearAgo = new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), currentDate.getDate());
+  var yearAgo = new Date();
+  yearAgo.setFullYear(yearAgo.getFullYear() - 1);
   var categories = ["Promotions", "Social", "Updates"];
-  var batchSize = 20; // Set your batch size
-  var zone = Session.getScriptTimeZone();
+  var batchSize = 25; // Set your batch size
+  var zone = 'GMT' || Session.getScriptTimeZone() || 'Asia/Kolkata';
+  var deletedThreadCount = 0;
+  var totalThreadCount = 0;
   Logger.log('Deleting Old Emails ' + yearAgo);
   categories.forEach(function(category) {
     // Define the search query for each category and the cutoff date
-    var searchQuery = "category:" + category + " before:" + Utilities.formatDate(yearAgo, zone, "yyyy-MM-dd");
+    var searchQuery = "category:" + category + " before:" + Utilities.formatDate(yearAgo, zone, 'yyyy-MM-dd');
     var threads = GmailApp.search(searchQuery);
+    totalThreadCount += threads.length;
     for (var i = 0; i < threads.length; i += batchSize) {
       var batch = threads.slice(i, i + batchSize);
-      
       batch.forEach(function(thread) {
-        thread.moveToTrash();
-        Logger.log("Deleted email in category: " + category + " with subject: " + thread.getFirstMessageSubject());
+        var arrivalTime = Utilities.formatDate(thread.getLastMessageDate(), zone, "yyyy-MM-dd"); // Format the arrival time
+        //thread.moveToTrash();
+        deletedThreadCount++;
+        Logger.log("(Arrival time: " + arrivalTime + ") " +"Deleted email in: " + category + " with subject: " + thread.getFirstMessageSubject());
       });
       
       // Pause briefly to avoid hitting execution time limits for Quota
-      Logger.log('Waiting for 7 Minutes');
-      Utilities.sleep(1000); // Wait for 1 mins
+      Logger.log('Waiting for 5 seconds');
+      Utilities.sleep(500); // Wait for 5 seconds (5000 milliseconds)
     }
+    Logger.log('Total threads deleted in category ' + category + ': ' + deletedThreadCount + ' out of ' + totalThreadCount);
   });
 }
