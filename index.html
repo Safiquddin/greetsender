@@ -109,17 +109,16 @@
     <div>
       <input type="checkbox" id="getBody" aria-label="Get Greet Body only">
       <label for="getBody">Get GreetBody only</label>
-      <textarea id="inputBody" placeholder="Enter your Message(Optional)" aria-label="Email Body"></textarea>
+      <textarea id="inputBody" rows="2" cols="30" placeholder="Enter message (Optional: After 50 words will overwrite defaultbody)" aria-label="Email Body"></textarea>
     </div>
     <!-- Input field for recipient's email -->
-    <textarea id="inputRecipient" placeholder="Recipient's Email(or example@gmail.com,name,1996-08-15)" aria-label="Recipient's Email" onchange="validateInput()"></textarea>
-    <a id="validationMessage"></a>
-
+    <textarea id="inputRecipient" rows="1" cols="53" placeholder="Recipient's Email(email,name,dob)" aria-label="Recipient's Email" onchange="validateInput()"></textarea>
+    <div id="validationMessage"></div>
     <!-- Button to send the email -->
     <button id="sendEmailButton" aria-label="Execute">Execute</button>
     <a id="PleaseWait" style="display: none;">Please Wait until Popup</a>
     <!-- Add a link element with an initial empty href -->
-    <a id="ExecutionsLink" href="https://script.google.com/home/projects/1R8bgqF-G_fZXyER0sokYXSi80AaD_27RhOOzswUNnpT1Q8f94uxGngge/executions" style="display: none;">Executions Status</a>
+    <a id="ExecutionsLink" href="https://script.google.com/home/projects/1uQG-f3ul9bPxKAeBDMTvkkgV6nINMUXv2__vFo1ENGcO_K27_R7d9kcw/executions" style="display: none;">Executions Status</a>
     <a id="successMessage" style="display: none;">Execution Suceess</a>
     <!-- Add a paragraph element to display the log output -->
     <p>Log Output:</p>
@@ -131,7 +130,6 @@
   // JavaScript code for handling user interactions
   document.getElementById("sendEmailButton").addEventListener("click", function() {
     var sendButton = document.getElementById("sendEmailButton");
-    sendButton.classList.add("loading"); // Add loading class
     var inputRecipient = document.getElementById("inputRecipient").value;
     var getBody = document.getElementById("getBody").checked;
     var inputBody = document.getElementById("inputBody").value;
@@ -140,6 +138,7 @@
   
     // Function to send an email and handle success/failure
     function sendAndHandleEmail(inputRecipient, inputBody, getBody) {
+      sendButton.classList.add("loading"); // Add loading class
       google.script.run
         .withSuccessHandler(function(logOutput) {
           alert(logMessage);
@@ -158,8 +157,8 @@
       sendAndHandleEmail(inputRecipient, inputBody ? inputBody : null, true);
     }
     else if (inputRecipient){
-      if (!validateInput(inputRecipient)) {
-        errorMessage.textContent = 'Invalid email address';
+      if (!validateInput()) {
+        errorMessage.textContent = 'Invalid Input';
       }
       else {
         document.getElementById("PleaseWait").style.display = "block";
@@ -169,7 +168,7 @@
     else {
       // errorMessage.textContent = 'Recipient email is required';
       // uncomment this else block for auto execute default value of recipient
-      errorMessage.textContent = 'Recipient email is required, executing default recipents';
+      errorMessage.textContent = 'No email-id Provided, executing default recipents';
       sendAndHandleEmail(inputRecipient, inputBody ? inputBody : null, false);
       document.getElementById("ExecutionsLink").style.display = "block";
     }
@@ -181,33 +180,87 @@
   function showSuccessMessage() {
     document.getElementById("successMessage").style.display = "block";
   }
-
-  function validateInput(email) {
+  
+  function validateInput(input) {
     var inputElement = document.getElementById("inputRecipient");
     var validationMessageElement = document.getElementById("validationMessage");
-  
     var inputText = inputElement.value.trim();
     var parts = inputText.split(",");
     var emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-  
-    if (parts.length >= 1) {
-      var email = parts[0].trim();
-  
-      if (emailRegex.test(email)) {
-        // Email is valid
-        validationMessageElement.textContent = "Email is valid.";
-        validationMessageElement.style.color = "green";
-        // You can access the other parts like parts[1] (name) and parts[2] (date of birth) here
-      } else {
-        validationMessageElement.textContent = "Email is invalid.";
-        validationMessageElement.style.color = "red";
-      }
-      return emailRegex.test(email);
-    } else {
-      validationMessageElement.textContent = "Please enter a valid email.";
-      validationMessageElement.style.color = "red";
+    var nameRegex = /^[a-zA-Z\s]+$/;
+    var dobRegex = /^\d{4}-\d{2}-\d{2}$/;
+    var isValid = false;
+    if (parts.length === 1) {
+        var email = parts[0].trim();
+        if (emailRegex.test(email)) {
+            isValid = true;
+            message = "Email is valid";
+        } else {
+            message = "Invalid Email";
+        }
+    } else if (parts.length === 2) {
+        var email = parts[0].trim();
+        var name = parts[1].trim();
+        if (emailRegex.test(email) && nameRegex.test(name)) {
+            isValid = true;
+            message = "Email and name are valid";
+        } else {
+            message = "Input are invalid, use email,name";
+        }
+    } else if (parts.length === 3) {
+        var email = parts[0].trim();
+        var name = parts[1].trim();
+        var dob = parts[2].trim();
+        if (emailRegex.test(email) && nameRegex.test(name) && dobRegex.test(dob)) {
+            isValid = true;
+            message = "Email, name, and date of birth are valid";
+        } else {
+            message = "Invalid entry format, Please use email,name,yyyy-mm-dd";
+        }
     }
+    validationMessageElement.textContent = message;
+    validationMessageElement.style.color = isValid ? "green" : "red";
+    return isValid;
   }
+
+
+  // function validateInput(email) {
+  //   var inputElement = document.getElementById("inputRecipient");
+  //   var validationMessageElement = document.getElementById("validationMessage");
+  
+  //   var inputText = inputElement.value.trim();
+  //   var entries = inputText.split(":"); // Split by colon to separate different entries
+  //   var emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+  //   var valid = true;
+  
+  //   for (var i = 0; i < entries.length; i++) {
+  //     var parts = entries[i].split(","); // Split each entry by comma
+  //     if (parts.length >= 1) {
+  //       var email = parts[0].trim();
+  //       var name = parts[1].trim();
+  //       var dob = parts[2].trim();
+        
+  //       if (!emailRegex.test(email)) {
+  //         validationMessageElement.textContent = "Email is invalid.";
+  //         validationMessageElement.style.color = "red";
+  //         valid = false;
+  //         break; // Stop processing if an email is invalid
+  //       }
+  //       // You can access the name and dob here
+  //     } else {
+  //       validationMessageElement.textContent = "Invalid entry format. Please use 'email,name,date_of_birth'.";
+  //       validationMessageElement.style.color = "red";
+  //       valid = false;
+  //       break; // Stop processing if the entry format is invalid
+  //     }
+  //   }
+  //   if (valid) {
+  //     validationMessageElement.textContent = "Entries valid.";
+  //     validationMessageElement.style.color = "green";
+  //     return emailRegex.test(email);
+  //   }
+  // }
+
 
   function checkAnswer(correctAnswer) {
     var selectedAnswer = document.querySelector('input[name="answer"]:checked');
