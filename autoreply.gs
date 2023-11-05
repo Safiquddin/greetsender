@@ -12,10 +12,11 @@ function autoReply() {
   // var threads = GmailApp.getInboxThreads(0, ureadMsgsCount);
   var threads = GmailApp.search('is:unread category:primary in:inbox');
   var ignoredSenders = ["khanjordan440@gmail.com"];
+  var ignoredDomains = ["hdfcbank.net", "naukri.com"];
   // var hoursAgo = new Date();
   // hoursAgo.setHours(hoursAgo.getHours() - 1);
   var minutesAgo = new Date();
-  minutesAgo.setMinutes(minutesAgo.getMinutes() - 11);
+  minutesAgo.setMinutes(minutesAgo.getMinutes() - 10);
   for (var i = 0; i < threads.length; i++) {
     var thread = threads[i];
     var lastMessage = thread.getLastMessageDate();
@@ -29,9 +30,12 @@ function autoReply() {
         continue;
         }
         var senderEmail = message.getFrom();
+        var senderDomain = senderEmail.split('@')[1].split('>')[0];
         debugger;
-        // var senderDomain = senderEmail.substring(senderEmail.lastIndexOf("@") + 1).split('>')[0];
         if (ignoredSenders.includes(senderEmail)) {
+          continue;
+        }
+        if (ignoredDomains.includes(senderDomain)) {
           continue;
         }
         if (!sentEmails.includes(senderEmail)) {
@@ -46,7 +50,7 @@ function autoReply() {
           replyMessage += `<font color="yellow">auto-reply from system</font>`;
           message.reply(subject, { htmlBody: replyMessage });
           message.markRead();
-          // thread.markRead();
+          thread.markRead();
           sentEmails.push(senderEmail);
           successFlag = true;
         }
@@ -60,6 +64,7 @@ function autoReply() {
     Logger.log('No Unread Emails Found');
   }
 }
+
 function getSender(email) {
   var name = email.split('@')[0]; // Get the part before the @ symbol
   name = name.split('.').join(' '); // Replace dots with spaces
@@ -103,7 +108,7 @@ function deleteOldEmails() {
       var batch = threads.slice(i, i + batchSize);
       batch.forEach(function(thread) {
         var arrivalTime = Utilities.formatDate(thread.getLastMessageDate(), zone, "yyyy-MM-dd"); // Format the arrival time
-        //thread.moveToTrash();
+        thread.moveToTrash();
         deletedThreadCount++;
         Logger.log("(Arrival time: " + arrivalTime + ") " +"Deleted email in: " + category + " with subject: " + thread.getFirstMessageSubject());
       });
