@@ -1,4 +1,4 @@
-Access https://script.google.com/macros/s/AKfycbxQGCTs-Ersc0JSAOREBEmGWDqf5WbsJROVb1xgVr9KSGj2TA6TwWgvvy810xQ8lATc/exec
+Access https://bit.ly/greetemail
 to execute in scripts google webapp
 
 # greetsender
