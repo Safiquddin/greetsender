@@ -138,7 +138,8 @@ function sendEmail(inputRecipient, inputBody, getBody) {
     }
     if (!inputRecipient && !getBody) {
       try {
-        var threads = GmailApp.search('-in:sent' + 'subject:' + subject + 'to:' + recipientEmail);
+        var threads = GmailApp.search('in:sent subject:' + subject + ' to:' + recipientEmail);
+        Logger.log('threads found:' + threads.length);
         if (threads.length > 0) {
           // If a thread with the same subject is found, reply to the latest email in the thread
           var latestThread = threads[0];
