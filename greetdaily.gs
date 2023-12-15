@@ -11,22 +11,12 @@ function getuser() {
 }
   // Define the list of recipient email addresses and names as an object
 var recipients = {
-  'safiquddinkhan@gmail.com': 'Safiquddin Khan,1996-08-19',
-  'khangayasuddin99@gmail.com': 'Gayasuddin Khan,1967-04-15',
-  'khatunsahara77@gmail.com': 'Sahara Khatun,1971-01-02',
-  'rajutarannum143@gmail.com': 'MD Shamshad,1989-10-25',
-  'banumuskaan998@gmail.com': 'Muskaan Banu,2004-02-21',
-  'mdkutubuddin33@gmail.com': 'MD. Kutubuddin,1994-08-31',
-  'tabassumsheikh2708@gmail.com': 'Tabassum Nisha,1994-08-27',
-  'realshad07@gmail.com': 'Shad Perwez,1994-10-14',
-  'sahazadshaikh@gmail.com': 'Sahazad Shaikh,1985-11-21',
-  'wascr7zafar@gmail.com' : 'Waseem Zafar,2006-12-14',
+  'safiquddinkhan@gmail.com': 'Safiquddin Khan,1996-08-19'
   'sheikrizwanrzn@gmail.com' : 'Sheikh Rizwan,1996-12-1',
 };
 // Define the list of recipients for whom you want to send Hindi jokes
 var hindirecipients = [
-  'khanjordan440@gmail.com', 'banumuskaan998@gmail.com', 'realshad07@gmail.com', 'mdkutubuddin33@gmail.com',
-  'safiquddinkhan@gmail.com', 'sheikrizwanrzn@gmail.com', 'wascr7zafar@gmail.com',
+  'sheikrizwanrzn@gmail.com',
 ];
 
 var gmArray = [
